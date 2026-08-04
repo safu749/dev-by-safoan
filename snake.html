@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mypersonalnook</title>
+
+    <style>
+        body {
+            background-color: #1a1a2e;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        h1 {
+            color: #4e54c8;
+            margin-bottom: 10px;
+        }
+
+        .score-board {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            background: #16213e;
+            padding: 8px 16px;
+            border-radius: 6px;
+        }
+
+        canvas {
+            border: 3px solid #4e54c8;
+            background-color: #0f3460;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .controls {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #a2a2a2;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: #e94560;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background-color: #ff6b81;
+        }
+    </style>
+</head>
+<body>
+
+    <h1><em><u>Welcome to the snake game!</u></em></h1>
+
+    <div class="score-board">
+        Score: <span id="score">0</span>
+    </div>
+
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div class="controls">
+        Control with Arrow Keys (⬆️ ⬇️ ⬅️ ➡️)
+    </div>
+
+    <button onclick="restartGame()">Restart</button>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const scoreElement = document.getElementById("score");
+
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+
+        let snake = [{ x: 10, y: 10 }];
+        let food = { x: 5, y: 5 };
+        let dx = 1;
+        let dy = 0;
+        let score = 0;
+        let isGameOver = false;
+
+        document.addEventListener("keydown", changeDirection);
+
+        function main() {
+            if (isGameOver) return;
+
+            setTimeout(function onTick() {
+                clearCanvas();
+                drawFood();
+                moveSnake();
+                drawSnake();
+                checkCollision();
+                main();
+            }, 100);
+        }
+
+        function clearCanvas() {
+            ctx.fillStyle = "#0f3460";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawSnake() {
+            snake.forEach((part, index) => {
+                ctx.fillStyle = index === 0 ? "#4e54c8" : "#8f94fb";
+                ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize - 2, gridSize - 2);
+            });
+        }
+
+        function moveSnake() {
+            const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+            snake.unshift(head);
+
+            if (head.x === food.x && head.y === food.y) {
+                score += 10;
+                scoreElement.innerText = score;
+                generateFood();
+            } else {
+                snake.pop();
+            }
+        }
+
+        function changeDirection(event) {
+            const keyPressed = event.keyCode;
+            const LEFT = 37, UP = 38, RIGHT = 39, DOWN = 40;
+
+            const goingUp = dy === -1;
+            const goingDown = dy === 1;
+            const goingRight = dx === 1;
+            const goingLeft = dx === -1;
+
+            if (keyPressed === LEFT && !goingRight) { dx = -1; dy = 0; }
+            if (keyPressed === UP && !goingDown) { dx = 0; dy = -1; }
+            if (keyPressed === RIGHT && !goingLeft) { dx = 1; dy = 0; }
+            if (keyPressed === DOWN && !goingUp) { dx = 0; dy = 1; }
+        }
+
+        function generateFood() {
+            food.x = Math.floor(Math.random() * tileCount);
+            food.y = Math.floor(Math.random() * tileCount);
+
+            snake.forEach(part => {
+                if (part.x === food.x && part.y === food.y) generateFood();
+            });
+        }
+
+        function drawFood() {
+            ctx.fillStyle = "#e94560";
+            ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+        }
+
+        function checkCollision() {
+            const head = snake[0];
+
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                isGameOver = true;
+            }
+
+            for (let i = 1; i < snake.length; i++) {
+                if (head.x === snake[i].x && head.y === snake[i].y) {
+                    isGameOver = true;
+                }
+            }
+
+            if (isGameOver) {
+                alert("Game Over! Score: " + score);
+            }
+        }
+
+        function restartGame() {
+            snake = [{ x: 10, y: 10 }];
+            dx = 1;
+            dy = 0;
+            score = 0;
+            scoreElement.innerText = score;
+            isGameOver = false;
+            generateFood();
+            main();
+        }
+
+        generateFood();
+        main();
+    </script>
+
+    <p style="font-size: 30px;"><i>this game is made by gemini</i></p>
+</body>
+</html>
